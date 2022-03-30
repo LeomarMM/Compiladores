@@ -1,0 +1,8 @@
+void main
+{
+	a:integer;
+	tetra:string;
+	inicio
+		cout << ~testando essa coisa~ << a << ~opa, parece que funcionou~;
+	fim
+}

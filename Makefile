@@ -1,2 +1,2 @@
-Lexico: src/Main.c src/Automata.c
-	gcc src/Main.c src/Automata.c -o Lexico
+main: src/main.c src/automata.c src/stack.c src/predef.c src/queue.c
+	gcc src/main.c src/automata.c src/stack.c src/predef.c src/queue.c -ansi -pedantic-errors -O2 -o compiler
