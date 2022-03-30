@@ -11,5 +11,5 @@ typedef struct
 token_t* query_automata(int*, char*);
 void print_token(token_t*);
 void fprint_token(void*, token_t*);
-
+void free_token(token_t*);
 #endif

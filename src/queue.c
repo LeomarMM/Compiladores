@@ -2,6 +2,7 @@
 #include <stdlib.h>
 void init_queue(queue_t* queue)
 {
+    if(queue == NULL) return;
     *queue = malloc(sizeof(queue_node));
     (*queue)->empty = 1;
     (*queue)->item = 0;
@@ -46,4 +47,10 @@ void* pop_queue(queue_t queue)
 unsigned short queue_isEmpty(queue_t queue)
 {
     return queue->empty;
+}
+void free_queue(queue_t queue)
+{
+    if(queue == NULL) return;
+    free_queue(queue->next);
+    free(queue);
 }

@@ -1,9 +1,11 @@
+
+
 void main {
 	n , i : integer ; 
 	a , b , r , soma : float ;
 		
 	inicio
-
+	
 	/* SÉRIE SOMA ALGEBRICA */
 
 	n = 10;

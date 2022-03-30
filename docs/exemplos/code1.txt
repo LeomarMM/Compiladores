@@ -3,21 +3,23 @@ void main {
 	integer funcao1 ( integer ; string ) {
 		r : integer ;
 		void funcao11 {
+			a , b , x , y , r  : integer ;
 			inicio
 				r = ( a / b + 3 ) * ( ( x + y ) / 2 );
 			fim
-			return ( r )
+			return ( )
 		}
 		inicio
 			cin >> r;
 		fim
-		return ( )
+		return ( r )
 	}
 	string funcao2 {
+		cadeia : string;
 		inicio
-			cadeia = "atribuicao"; /* erro semantico */
+			cadeia = "atribuicao";
 		fim
-		return ( r )
+		return ( cadeia )
 	}
 	inicio
 		if ( a == b ) {
@@ -51,9 +53,9 @@ void main {
 			a = a + 1;
 		};
 		for ( b = a; a != 10; ++2 ) {
-			f = a / b;
+			c = a / b;
 		};
-		a = callfuncao funcao1 ( a , b );
+		a = callfuncao funcao1 ( a , s );
 		s = callfuncao funcao2;
 		a = a + b - d / ( c * a );
 		c1 = 'a';

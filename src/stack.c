@@ -49,3 +49,9 @@ unsigned short stack_isEmpty(stack_t stack)
 {
     return stack->empty;
 }
+void free_stack(stack_t stack)
+{
+    if(stack == NULL) return;
+    free_stack(stack->previous);
+    free(stack);
+}

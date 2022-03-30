@@ -1,4 +1,5 @@
 #include "../include/predef.h"
+#include <string.h>
 #define TOKEN_TABLE_SIZE 83
 #define RULESET_SIZE 225
 #define PARSING_TABLE_SIZE 133
@@ -508,6 +509,15 @@ void push_rule_into_stack(stack_t* _stack, unsigned short rule)
 		if(token != 0) push_stack(_stack, token);
 	}
 }
+void push_rule_into_tree(tree_t tree, unsigned short rule)
+{
+    int i;
+	for(i = 0; i <= 16; i++)
+	{
+        unsigned short token = fetch_token(rule, i);
+		if(token != 0) insert_child_tree(tree, (char*)token_to_string(token));
+	}
+}
 const char* token_to_string(unsigned short token)
 {
     if(token >= TOKEN_TABLE_SIZE) return "INVALID";
@@ -532,4 +542,114 @@ void fprint_stack(FILE* file, stack_t stack)
         next = next->previous;
         if(next != NULL) fprintf(file, " ");
     }
+}
+void print_var_table(queue_t queue)
+{
+    var_struct* vt;
+    while(!queue_isEmpty(queue))
+    {
+        vt = queue->item;
+        printf("%s %s %s %s\r\n", vt->level, vt->name, vt->category == 0 ? "variavel":"funcao", vt->type);
+        queue = queue->next;
+    }
+}
+void fprint_var_table(FILE* file, queue_t queue)
+{
+    var_struct* vt;
+    while(!queue_isEmpty(queue))
+    {
+        vt = queue->item;
+        fprintf(file, "%s <-> %s <-> %s <-> %s", vt->level, vt->name, vt->category == 0 ? "variavel":"funcao", vt->type);
+        queue = queue->next;
+        if(!queue_isEmpty(queue)) fprintf(file, "\r\n");
+    }
+}
+unsigned short fprint_token_queue(FILE* file, queue_t queue)
+{
+    while(!queue_isEmpty(queue))
+    {
+        token_t* lex = queue->item;
+        if(lex->error) 
+        {
+            fprintf(file, "Erro lexico. O seguinte texto foi rejeitado: \"%s\"", lex->string);
+            return 1;
+        }
+	    else fprintf(file, "<%d, %s>", lex->token_id, lex->string);
+        queue = queue->next;
+        if(!queue_isEmpty(queue)) fprintf(file, "\r\n");
+    }
+    return 0;
+}
+tree_t stepback_tree(tree_t tree)
+{
+    tree_t next_sibling = NULL;
+    if(tree->back == NULL) return NULL;
+    if(tree == NULL) return NULL;
+    while(tree->back != NULL && next_sibling == NULL)
+    {
+        next_sibling = next_sibling_tree(tree);
+        tree = tree->back;
+    }
+    if(next_sibling == NULL) return root_tree(tree);
+    return next_sibling;
+}
+void DCLVAR_step(tree_t tree, queue_t var_table, char* level)
+{
+    var_struct* add;
+    if(strcmp("DCLVAR", tree->string)) return;
+    if(!has_children_tree(tree)) return;
+    if(!strcmp(first(tree)->string, "i")) return;
+    add = malloc(sizeof(var_struct));
+    add->category = 0;
+    add->level = level;
+    add->type = first(forward_tree(tree, 3))->string;
+    add->name = first(tree)->string;
+    push_queue(var_table, add);
+    REPIDENT_step(forward_tree(tree, 1), var_table, add->type, level);
+    LDVAR_step(forward_tree(tree, 5), var_table, level);
+}
+void DCLFUNC_step(tree_t tree, queue_t var_table, char* level)
+{
+    var_struct* add;
+    if(strcmp("DCLFUNC", tree->string)) return;
+    if(!has_children_tree(tree)) return;
+    if(!strcmp(first(tree)->string, "i")) return;
+    add = malloc(sizeof(var_struct));
+    add->category = 1;
+    add->level = level;
+    add->type = first(first(tree))->string;
+    add->name = forward_tree(tree, 1)->string;
+    push_queue(var_table, add);
+    DCLVAR_step(forward_tree(tree, 4), var_table, add->name);
+    DCLFUNC_step(forward_tree(tree, 5), var_table, add->name);
+    DCLFUNC_step(forward_tree(tree, 12), var_table, "main");
+}
+void REPIDENT_step(tree_t tree, queue_t var_table, char* type, char* level)
+{
+    var_struct* add;
+    if(strcmp("REPIDENT", tree->string)) return;
+    if(!has_children_tree(tree)) return;
+    if(!strcmp(first(tree)->string, "i")) return;
+    add = malloc(sizeof(var_struct));
+    add->category = 0;
+    add->level = level;
+    add->type = type;
+    add->name = forward_tree(tree, 1)->string;
+    push_queue(var_table, add);
+    REPIDENT_step(forward_tree(tree, 2), var_table, type, level);
+}
+void LDVAR_step(tree_t tree, queue_t var_table, char* level)
+{
+    var_struct* add;
+    if(strcmp("LDVAR", tree->string)) return;
+    if(!has_children_tree(tree)) return;
+    if(!strcmp(first(tree)->string, "i")) return;
+    add = malloc(sizeof(var_struct));
+    add->category = 0;
+    add->level = level;
+    add->type = first(forward_tree(tree, 2))->string;
+    add->name = first(first(tree))->string;
+    push_queue(var_table, add);
+    REPIDENT_step(forward_tree(first(tree), 1), var_table, add->type, level);
+    LDVAR_step(forward_tree(tree, 4), var_table, level);
 }
